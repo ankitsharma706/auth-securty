@@ -1,0 +1,43 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile data",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email" },
+        "twoFactorSecret": { "type": "string", "description": "TOTP secret for 2FA" },
+        "twoFactorEnabled": { "type": "boolean", "default": false },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email", "createdAt", "updatedAt"]
+    },
+    "PasswordEntry": {
+      "title": "Password Entry",
+      "description": "A stored password record",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The UID of the owner user" },
+        "sourceName": { "type": "string", "description": "The name of the website or app (e.g. Google, Netflix)" },
+        "username": { "type": "string", "description": "The username or email for the source" },
+        "encryptedPassword": { "type": "string", "description": "The AES-256 encrypted password string" },
+        "category": { "type": "string", "description": "Category like Social, Work, Finance" },
+        "notes": { "type": "string", "description": "Optional notes" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "sourceName", "username", "encryptedPassword", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Collection of user profiles"
+    },
+    "/passwords/{passwordId}": {
+      "schema": "PasswordEntry",
+      "description": "Global collection of all stored passwords, secured by userId"
+    }
+  }
+}

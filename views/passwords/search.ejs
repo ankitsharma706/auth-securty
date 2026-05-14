@@ -1,0 +1,64 @@
+<%- include('../partials/header') %>
+
+<div class="max-w-6xl mx-auto">
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold space-grotesk">Search Results</h1>
+            <p class="text-slate-500">Found <%= results.length %> entries matching <span class="text-blue-600 font-bold">"<%= query %>"</span></p>
+        </div>
+        <a href="/passwords" class="text-sm font-semibold text-blue-600 hover:underline flex items-center gap-1">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Back to Vault
+        </a>
+    </div>
+
+    <div class="glass rounded-3xl overflow-hidden">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="border-b border-slate-100 bg-slate-50/50">
+                    <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Source</th>
+                    <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Username/Email</th>
+                    <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Password</th>
+                    <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                <% if (results.length === 0) { %>
+                    <tr>
+                        <td colspan="4" class="px-6 py-20 text-center">
+                            <p class="text-slate-400 mb-4">No results found for your search.</p>
+                            <a href="/passwords/new" class="text-blue-600 font-medium">Add a new entry for "<%= query %>"</a>
+                        </td>
+                    </tr>
+                <% } else { %>
+                    <% results.forEach(pw => { %>
+                        <tr class="hover:bg-blue-50/30 transition-colors group">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center font-bold text-xs"><%= pw.sourceName.charAt(0).toUpperCase() %></div>
+                                    <div class="font-bold text-slate-700"><%= pw.sourceName %></div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-slate-600"><%= pw.username %></td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-2">
+                                    <span class="password-field font-mono text-sm tracking-tighter" data-password="<%= pw.decryptedPassword %>">••••••••</span>
+                                    <button class="p-1.5 hover:bg-white rounded-lg text-slate-400 hover:text-blue-600 transition-colors toggle-visibility">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                    </button>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <a href="/passwords/edit/<%= pw.id %>" class="p-2 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors inline-block">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                </a>
+                            </td>
+                        </tr>
+                    <% }) %>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

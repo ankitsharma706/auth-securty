@@ -1,0 +1,29 @@
+<%- include('../partials/header') %>
+
+<div class="max-w-md mx-auto mt-16">
+    <div class="glass p-8 rounded-[2rem]">
+        <h1 class="text-2xl font-bold space-grotesk text-center mb-2">Security Verification</h1>
+        <p class="text-slate-500 text-center mb-8 text-sm">Enter the 6-digit code from your authenticator app to continue.</p>
+
+        <% if (error) { %>
+            <div class="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl mb-6 text-sm flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <%= error %>
+            </div>
+        <% } %>
+
+        <form action="/2fa/verify-login" method="POST" class="space-y-6">
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1 text-center">Auth Code</label>
+                <input type="text" name="token" required autofocus class="w-full px-4 py-4 rounded-xl border border-slate-200 bg-white/50 focus:ring-2 focus:ring-blue-500 outline-none text-center text-3xl tracking-[0.5em] font-mono" placeholder="000000" maxlength="6">
+            </div>
+            <button type="submit" class="w-full py-4 button-gradient text-white rounded-xl font-bold shadow-lg shadow-blue-500/20 active:scale-95 transition-all">Verify & Login</button>
+        </form>
+
+        <p class="text-center mt-8 text-xs text-slate-400">
+            Lost access to your device? <a href="mailto:support@securevault.pro" class="text-blue-600 hover:underline">Contact Security Team</a>
+        </p>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

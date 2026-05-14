@@ -1,0 +1,54 @@
+<%- include('../partials/header') %>
+
+<div class="max-w-2xl mx-auto">
+    <a href="/passwords" class="flex items-center gap-2 text-slate-500 hover:text-blue-600 mb-6 text-sm transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Back to Vault
+    </a>
+
+    <div class="glass p-8 rounded-3xl">
+        <h1 class="text-2xl font-bold space-grotesk mb-2">Edit Credentials</h1>
+        <p class="text-slate-500 mb-8">Update the details for <span class="text-blue-600 font-bold"><%= password.sourceName %></span>.</p>
+
+        <form action="/passwords/update/<%= password.id %>" method="POST" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Source Name</label>
+                    <input type="text" name="sourceName" value="<%= password.sourceName %>" required class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white/50 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Category</label>
+                    <select name="category" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white/50 focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none">
+                        <% ['Social', 'Work', 'Finance', 'Personal', 'Shopping', 'Other'].forEach(cat => { %>
+                            <option value="<%= cat %>" <%= password.category === cat ? 'selected' : '' %>><%= cat %></option>
+                        <% }) %>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Username / Email</label>
+                    <input type="text" name="username" value="<%= password.username %>" required class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white/50 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Password</label>
+                    <input type="password" name="password" value="<%= password.decryptedPassword %>" required class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white/50 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Notes (Optional)</label>
+                <textarea name="notes" rows="3" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white/50 focus:ring-2 focus:ring-blue-500 outline-none transition-all"><%= password.notes %></textarea>
+            </div>
+
+            <div class="flex pt-4">
+                <button type="submit" class="w-full py-4 button-gradient text-white rounded-xl font-bold shadow-lg shadow-blue-500/20 hover:scale-[1.02] active:scale-95 transition-all">
+                    Update Credential
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

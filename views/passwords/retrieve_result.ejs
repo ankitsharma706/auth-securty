@@ -1,0 +1,78 @@
+<%- include('../partials/header') %>
+
+<div class="max-w-4xl mx-auto">
+    <div class="glass p-10 rounded-[3rem] text-center overflow-hidden relative">
+        <!-- Background Accents -->
+        <div class="absolute -top-24 -right-24 w-64 h-64 bg-blue-100 rounded-full blur-3xl opacity-50"></div>
+        <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-purple-100 rounded-full blur-3xl opacity-50"></div>
+
+        <div class="relative z-10">
+            <div class="w-20 h-20 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-blue-100">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            
+            <h1 class="text-3xl font-bold space-grotesk mb-2">Password Retrieval</h1>
+            <p class="text-slate-500 mb-10">Securely retrieving credentials for <span class="text-blue-600 font-bold">"<%= sourceName %>"</span></p>
+
+            <% if (!result) { %>
+                <div class="bg-amber-50 border border-amber-100 p-8 rounded-3xl text-center">
+                    <div class="bg-amber-100 text-amber-600 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-amber-900 mb-2">No Matching Entry Found</h3>
+                    <p class="text-amber-700/70 mb-6">We couldn't find any credentials matching that source name in your vault.</p>
+                    <a href="/dashboard" class="px-6 py-2 bg-amber-200 text-amber-800 rounded-xl font-semibold hover:bg-amber-300 transition-colors">Try again</a>
+                </div>
+            <% } else { %>
+                <div class="max-w-md mx-auto">
+                    <div class="bg-white p-8 rounded-[2rem] shadow-xl shadow-blue-500/5 text-left border border-slate-100">
+                        <div class="flex justify-between items-start mb-6">
+                            <div>
+                                <span class="text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded-full uppercase font-bold tracking-widest"><%= result.category %></span>
+                                <h3 class="text-xl font-bold text-slate-800 mt-2"><%= result.sourceName %></h3>
+                            </div>
+                            <div class="px-3 py-1 bg-green-50 text-green-600 text-[10px] font-bold rounded-full border border-green-100 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                                ENCRYPTED
+                            </div>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Username / Email</label>
+                                <div class="flex items-center justify-between group">
+                                    <span class="text-slate-700 font-medium"><%= result.username %></span>
+                                    <button class="text-slate-300 hover:text-blue-600 transition-colors copy-btn" data-copy="<%= result.username %>">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Secret Password</label>
+                                <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 group">
+                                    <span class="password-field font-mono text-sm tracking-widest text-slate-500" data-password="<%= result.decryptedPassword %>">••••••••••••</span>
+                                    <div class="flex items-center gap-2">
+                                        <button class="p-2 hover:bg-white rounded-lg text-slate-400 hover:text-blue-600 transition-all shadow-sm toggle-visibility">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        </button>
+                                        <button class="p-2 hover:bg-white rounded-lg text-slate-400 hover:text-blue-600 transition-all shadow-sm copy-btn" data-copy="<%= result.decryptedPassword %>">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-10 flex gap-3">
+                            <a href="/dashboard" class="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-center text-sm hover:bg-slate-200 transition-all">Dismiss</a>
+                            <a href="/passwords/edit/<%= result.id %>" class="flex-1 py-3 button-gradient text-white rounded-xl font-bold text-center text-sm shadow-md">Edit Entry</a>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

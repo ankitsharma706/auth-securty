@@ -1,0 +1,132 @@
+<%- include('../partials/header') %>
+
+<div class="max-w-6xl mx-auto">
+    <!-- Welcome Header -->
+    <div class="flex justify-between items-end mb-10">
+        <div>
+            <h1 class="text-3xl font-bold space-grotesk">Welcome Back, <span class="text-blue-600"><%= user.email.split('@')[0] %></span></h1>
+            <p class="text-slate-500 mt-1">Your vault is encrypted and secure.</p>
+        </div>
+        <a href="/passwords/new" class="px-6 py-3 button-gradient text-white rounded-xl font-semibold shadow-lg shadow-blue-500/20 flex items-center gap-2 active:scale-95">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add New Password
+        </a>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div class="glass p-6 rounded-3xl">
+            <div class="flex items-center gap-4 mb-2">
+                <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </div>
+                <h3 class="font-semibold text-slate-600">Total Passwords</h3>
+            </div>
+            <p class="text-4xl font-bold space-grotesk"><%= totalCount %></p>
+        </div>
+        <div class="glass p-6 rounded-3xl">
+            <div class="flex items-center gap-4 mb-2">
+                <div class="w-10 h-10 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <h3 class="font-semibold text-slate-600">Security Score</h3>
+            </div>
+            <p class="text-4xl font-bold space-grotesk text-green-500">98%</p>
+        </div>
+        <div class="glass p-6 rounded-3xl">
+            <div class="flex items-center gap-4 mb-2">
+                <div class="w-10 h-10 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                </div>
+                <h3 class="font-semibold text-slate-600">Recent Activity</h3>
+            </div>
+            <p class="text-sm text-slate-500">Vault last updated today at 10:24 AM</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Retrieval Feature -->
+        <div class="lg:col-span-1">
+            <div class="glass p-6 rounded-3xl sticky top-28">
+                <h3 class="text-lg font-bold space-grotesk mb-4 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    Quick Retrieve
+                </h3>
+                <form action="/passwords/retrieve" method="POST" class="space-y-4">
+                    <div>
+                        <input type="text" name="sourceName" placeholder="Enter source name (e.g. Netflix)" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white/50 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                    </div>
+                    <button type="submit" class="w-full py-3 bg-white border border-slate-200 rounded-xl font-semibold hover:bg-slate-50 transition-colors shadow-sm">Retrieve Identity</button>
+                </form>
+                
+                <div class="mt-8">
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Categories</h4>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="p-3 bg-blue-50 text-blue-600 rounded-2xl text-sm font-medium text-center">Social</div>
+                        <div class="p-3 bg-purple-50 text-purple-600 rounded-2xl text-sm font-medium text-center">Work</div>
+                        <div class="p-3 bg-green-50 text-green-600 rounded-2xl text-sm font-medium text-center">Finance</div>
+                        <div class="p-3 bg-orange-50 text-orange-600 rounded-2xl text-sm font-medium text-center">Personal</div>
+                    </div>
+                </div>
+
+                <div class="mt-8 pt-8 border-t border-slate-100">
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Account Security</h4>
+                    <div class="p-4 rounded-2xl <%= user.twoFactorEnabled ? 'bg-green-50' : 'bg-red-50' %> flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-bold <%= user.twoFactorEnabled ? 'text-green-600' : 'text-red-600' %>">2FA <%= user.twoFactorEnabled ? 'ENABLED' : 'DISABLED' %></p>
+                            <p class="text-[10px] text-slate-500">Security Layer</p>
+                        </div>
+                        <% if (user.twoFactorEnabled) { %>
+                            <form action="/2fa/disable" method="POST">
+                                <button type="submit" class="text-[10px] font-bold text-red-600 hover:underline">Disable</button>
+                            </form>
+                        <% } else { %>
+                            <a href="/2fa/setup" class="text-[10px] font-bold text-blue-600 hover:underline">Setup Now</a>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Passwords -->
+        <div class="lg:col-span-2">
+            <div class="glass p-6 rounded-3xl min-h-[400px]">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-bold space-grotesk">Recently Stored</h3>
+                    <a href="/passwords" class="text-sm font-semibold text-blue-600 hover:underline">View All Vault</a>
+                </div>
+
+                <% if (recentPasswords.length === 0) { %>
+                    <div class="flex flex-col items-center justify-center h-full text-center py-20 grayscale opacity-50">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="mb-4"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        <p class="text-slate-500">Your vault is currently empty.</p>
+                        <a href="/passwords/new" class="mt-4 text-blue-600 font-medium">Add your first password</a>
+                    </div>
+                <% } else { %>
+                    <div class="space-y-4">
+                        <% recentPasswords.forEach(pw => { %>
+                            <div class="flex items-center justify-between p-4 rounded-2xl hover:bg-white/40 transition-all border border-transparent hover:border-white/50 group">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-lg font-bold text-slate-400 premium-shadow uppercase">
+                                        <%= pw.sourceName.charAt(0) %>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-slate-700"><%= pw.sourceName %></h4>
+                                        <p class="text-sm text-slate-400"><%= pw.username %></p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <a href="/passwords/edit/<%= pw.id %>" class="p-2 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                    </a>
+                                </div>
+                            </div>
+                        <% }) %>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

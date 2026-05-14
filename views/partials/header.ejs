@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureVault Pro | Premium Password Manager</title>
+    <!-- We'll use a direct link to a built Tailwind or just use CDN for simplicity in EJS if Vite setup is complex for EJS, 
+         but let's try to use the Vite served CSS -->
+    <link rel="stylesheet" href="/src/index.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #3b82f6;
+            --secondary-purple: #8b5cf6;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.3);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%);
+            min-height: 100vh;
+        }
+        .space-grotesk { font-family: 'Space Grotesk', sans-serif; }
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+        .premium-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .button-gradient {
+            background: linear-gradient(to right, var(--primary-blue), var(--secondary-purple));
+            transition: all 0.3s ease;
+        }
+        .button-gradient:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+    <nav class="glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-white/20">
+        <div class="flex items-center gap-2">
+            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-xl premium-shadow">S</div>
+            <span class="text-xl font-bold tracking-tight space-grotesk bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">SecureVault Pro</span>
+        </div>
+        <div class="flex items-center gap-6">
+            <% if (locals.user) { %>
+                <a href="/dashboard" class="text-sm font-medium hover:text-blue-600 transition-colors">Dashboard</a>
+                <a href="/passwords" class="text-sm font-medium hover:text-blue-600 transition-colors">Vault</a>
+                <a href="/logout" class="px-4 py-2 rounded-lg border border-slate-200 text-sm font-medium hover:bg-white/50 transition-all">Logout</a>
+            <% } else { %>
+                <a href="/login" class="text-sm font-medium hover:text-blue-600 transition-colors">Login</a>
+                <a href="/register" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium premium-shadow hover:bg-blue-700 transition-all">Get Started</a>
+            <% } %>
+        </div>
+    </nav>
+    <main class="container mx-auto px-4 py-8">
