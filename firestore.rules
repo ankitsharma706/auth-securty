@@ -37,7 +37,8 @@ service cloud.firestore {
           && data.username is string && data.username.size() <= 100
           && data.encryptedPassword is string && data.encryptedPassword.size() <= 2000
           && data.createdAt is timestamp
-          && data.updatedAt is timestamp;
+          && data.updatedAt is timestamp
+          && data.expiresAt is timestamp;
       }
 
       allow list: if isSignedIn() && resource.data.userId == request.auth.uid;

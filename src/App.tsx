@@ -180,6 +180,7 @@ export default function App() {
   const [newEntrySource, setNewEntrySource] = useState('');
   const [newEntryUser, setNewEntryUser] = useState('');
   const [newEntryPassword, setNewEntryPassword] = useState('');
+  const [newEntryExpiryDays, setNewEntryExpiryDays] = useState<number>(90);
   
   // Encrypted CSV Data Portability States
   const [exportAgreed, setExportAgreed] = useState(false);
@@ -187,6 +188,26 @@ export default function App() {
   const [newEntryCategory, setNewEntryCategory] = useState('Social');
   const [newEntryNotes, setNewEntryNotes] = useState('');
   const [showAddEntry, setShowAddEntry] = useState(false);
+
+  // Helper utility to calculate the days remaining before password should be rotated
+  const getDaysRemaining = (expiresAt: any): number => {
+    if (!expiresAt) return 0;
+    let expiresDate: Date;
+    if (typeof expiresAt.toDate === 'function') {
+      expiresDate = expiresAt.toDate();
+    } else if (expiresAt.seconds !== undefined) {
+      expiresDate = new Date(expiresAt.seconds * 1000);
+    } else if (expiresAt instanceof Date) {
+      expiresDate = expiresAt;
+    } else {
+      expiresDate = new Date(expiresAt);
+    }
+    
+    const now = new Date();
+    const diffTime = expiresDate.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
 
   // Monitor auth state changes and synchronize with Firestore
   useEffect(() => {
@@ -213,7 +234,8 @@ export default function App() {
                 strength: data.strength || 'Strong',
                 password: data.encryptedPassword || '',
                 createdAt: data.createdAt,
-                updatedAt: data.updatedAt
+                updatedAt: data.updatedAt,
+                expiresAt: data.expiresAt
               };
             });
             // Sort by creation date if available
@@ -235,19 +257,26 @@ export default function App() {
             };
 
             const defaultItems = [
-              { sourceName: 'Google Account Workspace', username: currentUser.email || 'corporate.admin@enterprise.com', category: 'Social', notes: 'Corporate master recovery keys bound', strength: 'Strong', encryptedPassword: generateRandomPwd(14) },
-              { sourceName: 'GitHub Enterprise Suite', username: `git_work_${currentUser.uid.slice(0, 5)}`, category: 'Work', notes: 'SSH Keypair and dynamic token synced', strength: 'Very Strong', encryptedPassword: generateRandomPwd(18) },
-              { sourceName: 'Supabase DB Production', username: 'postgres_owner_admin', category: 'Databases', notes: 'Direct connection string password', strength: 'Strong', encryptedPassword: generateRandomPwd(12) },
-              { sourceName: 'Stripe Finance Console', username: `finance.admin@${currentUser.email?.split('@')[1] || 'enterprise.com'}`, category: 'Finance', notes: 'MFA primary backup phrases', strength: 'Very Strong', encryptedPassword: generateRandomPwd(20) }
+              { sourceName: 'Google Account Workspace', username: currentUser.email || 'corporate.admin@enterprise.com', category: 'Social', notes: 'Corporate master recovery keys bound', strength: 'Strong', encryptedPassword: generateRandomPwd(14), expiryDays: 90 },
+              { sourceName: 'GitHub Enterprise Suite', username: `git_work_${currentUser.uid.slice(0, 5)}`, category: 'Work', notes: 'SSH Keypair and dynamic token synced', strength: 'Very Strong', encryptedPassword: generateRandomPwd(18), expiryDays: 30 },
+              { sourceName: 'Supabase DB Production', username: 'postgres_owner_admin', category: 'Databases', notes: 'Direct connection string password', strength: 'Strong', encryptedPassword: generateRandomPwd(12), expiryDays: 60 },
+              { sourceName: 'Stripe Finance Console', username: `finance.admin@${currentUser.email?.split('@')[1] || 'enterprise.com'}`, category: 'Finance', notes: 'MFA primary backup phrases', strength: 'Very Strong', encryptedPassword: generateRandomPwd(20), expiryDays: 45 }
             ];
 
             const seededItems = [];
             for (const item of defaultItems) {
+              const expiresDate = new Date(Date.now() + item.expiryDays * 24 * 60 * 60 * 1000);
               const docPayload = {
-                ...item,
+                sourceName: item.sourceName,
+                username: item.username,
+                category: item.category,
+                notes: item.notes,
+                strength: item.strength,
+                encryptedPassword: item.encryptedPassword,
                 userId: currentUser.uid,
                 createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp()
+                updatedAt: serverTimestamp(),
+                expiresAt: expiresDate
               };
               const docRef = await db.collection('passwords').add(docPayload);
               seededItems.push({
@@ -259,7 +288,8 @@ export default function App() {
                 strength: item.strength,
                 password: item.encryptedPassword,
                 createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
+                updatedAt: new Date().toISOString(),
+                expiresAt: expiresDate
               });
             }
             setVaultEntries(seededItems);
@@ -412,6 +442,8 @@ export default function App() {
     const pwdEvaluation = evaluatePassword(newEntryPassword);
     const score = pwdEvaluation.label;
 
+    const expiryDate = new Date(Date.now() + newEntryExpiryDays * 24 * 60 * 60 * 1000);
+
     const newElement = {
       userId: user.uid,
       sourceName: newEntrySource,
@@ -421,7 +453,8 @@ export default function App() {
       strength: score,
       notes: newEntryNotes || 'Encrypted via zero-knowledge client framework',
       createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
+      updatedAt: serverTimestamp(),
+      expiresAt: expiryDate
     };
 
     try {
@@ -435,7 +468,8 @@ export default function App() {
         strength: score,
         notes: newElement.notes,
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
+        expiresAt: expiryDate
       };
 
       setVaultEntries([savedElement, ...vaultEntries]);
@@ -443,6 +477,7 @@ export default function App() {
       setNewEntryUser('');
       setNewEntryPassword('');
       setNewEntryNotes('');
+      setNewEntryExpiryDays(90);
       setShowAddEntry(false);
       setAuthSuccess('New enterprise credential archived successfully into Firestore database.');
     } catch (error) {
@@ -1405,6 +1440,20 @@ export default function App() {
                                 <option value="Other">Miscellaneous</option>
                               </select>
                             </div>
+                            <div>
+                              <label className="block text-slate-600 font-bold mb-1">Password Expiration Period</label>
+                              <select 
+                                value={newEntryExpiryDays}
+                                onChange={(e) => setNewEntryExpiryDays(parseInt(e.target.value))}
+                                className="w-full bg-frost-blue hover:bg-white text-navy-deep border border-sky-soft focus:border-accent-blue rounded-lg px-3 py-2 text-xs transition cursor-pointer focus:outline-none"
+                              >
+                                <option value={30}>30 Days (High Security / Rotational)</option>
+                                <option value={60}>60 Days (Standard Corporate)</option>
+                                <option value={90}>90 Days (Default Enterprise)</option>
+                                <option value={180}>180 Days (Semi-Annual Check)</option>
+                                <option value={365}>365 Days (Annual Verification)</option>
+                              </select>
+                            </div>
                           </div>
 
                           <div>
@@ -1458,26 +1507,84 @@ export default function App() {
                           transition={{ delay: idx * 0.04 }}
                           className="p-4 bg-white border border-navy-rich/8 hover:border-navy-rich/15 rounded-xl hover:shadow-xs transition duration-200 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between"
                         >
-                          <div className="flex gap-3.5 items-center">
+                          <div className="flex gap-3.5 items-center flex-1 min-w-0">
                             <div className="p-2.5 bg-frost-blue border border-sky-soft text-navy-deep rounded-xl select-none shrink-0">
                               <Key className="w-4 h-4 text-navy-rich" />
                             </div>
-                            <div>
+                            <div className="min-w-0 flex-1">
                               <div className="flex flex-wrap items-center gap-2">
-                                <span className="text-xs font-extrabold text-navy-deep font-sans">{entry.sourceName}</span>
-                                <span className="text-[9px] font-mono uppercase bg-ice-blue border border-sky-soft text-navy-deep px-1.5 py-0.5 rounded font-extrabold select-none">
+                                <span className="text-xs font-extrabold text-navy-deep font-sans truncate">{entry.sourceName}</span>
+                                <span className="text-[9px] font-mono uppercase bg-ice-blue border border-sky-soft text-navy-deep px-1.5 py-0.5 rounded font-extrabold select-none shrink-0">
                                   {entry.category}
                                 </span>
-                                <span className={`text-[9px] font-mono border px-1.5 py-0.5 rounded select-none ${
+                                <span className={`text-[9px] font-mono border px-1.5 py-0.5 rounded select-none shrink-0 ${
                                   entry.strength === 'Very Strong' ? 'bg-emerald-50 border-emerald-250 text-emerald-800 font-extrabold' :
                                   entry.strength === 'Strong' ? 'bg-teal-50 border-teal-200 text-teal-800' : 'bg-amber-50 border-amber-250 text-amber-800'
                                 }`}>
                                   {entry.strength || 'Strong'}
                                 </span>
+
+                                {/* Expiration countdown badge inline on mobile */}
+                                <span className="md:hidden shrink-0">
+                                  {(() => {
+                                    const daysRemaining = getDaysRemaining(entry.expiresAt);
+                                    if (daysRemaining <= 0) {
+                                      return (
+                                        <span className="text-[9px] font-mono text-rose-600 font-semibold uppercase tracking-tight bg-rose-50 border border-rose-200 rounded px-1.5 py-0.5">
+                                          Expired
+                                        </span>
+                                      );
+                                    } else {
+                                      return (
+                                        <span className={`text-[9px] font-mono uppercase rounded px-1.5 py-0.5 border ${
+                                          daysRemaining <= 15 ? 'bg-amber-50 border-amber-200 text-amber-700 font-semibold' : 'bg-emerald-50 border-emerald-150 text-emerald-700'
+                                        }`}>
+                                          {daysRemaining}d. remaining
+                                        </span>
+                                      );
+                                    }
+                                  })()}
+                                </span>
                               </div>
-                              <span className="text-[11px] font-mono text-slate-500 block mt-0.5 select-all">{entry.username}</span>
-                              <p className="text-[10px] text-slate-400 italic mt-1 font-sans">{entry.notes}</p>
+                              <span className="text-[11px] font-mono text-slate-500 block mt-0.5 select-all truncate">{entry.username}</span>
+                              <p className="text-[10px] text-slate-400 italic mt-1 font-sans truncate">{entry.notes}</p>
                             </div>
+                          </div>
+
+                          {/* Expiration Status Column/Middle Field on Desktop */}
+                          <div className="hidden md:flex flex-col items-center justify-center border-l border-r border-slate-100 px-6 shrink-0 text-center select-none w-36">
+                            {(() => {
+                              const daysRemaining = getDaysRemaining(entry.expiresAt);
+                              if (daysRemaining <= 0) {
+                                return (
+                                  <>
+                                    <span className="text-[9px] font-mono text-rose-600 font-bold uppercase tracking-tight bg-rose-50 border border-rose-250 rounded px-1.5 py-0.5 flex items-center gap-1">
+                                      <span className="w-1 h-1 bg-rose-500 rounded-full animate-ping" />
+                                      Expired
+                                    </span>
+                                    <span className="text-[10px] font-bold text-rose-700 font-mono mt-1">Update Core Key</span>
+                                  </>
+                                );
+                              } else if (daysRemaining <= 15) {
+                                return (
+                                  <>
+                                    <span className="text-[9px] font-mono text-amber-600 font-semibold uppercase tracking-tight bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">
+                                      {daysRemaining} Days Left
+                                    </span>
+                                    <span className="text-[10px] text-amber-700 font-mono mt-1 font-medium">Rotation Advised</span>
+                                  </>
+                                );
+                              } else {
+                                return (
+                                  <>
+                                    <span className="text-[9px] font-mono text-emerald-600 font-semibold uppercase tracking-tight bg-emerald-50 border border-emerald-150 rounded px-1.5 py-0.5">
+                                      {daysRemaining} Days Remaining
+                                    </span>
+                                    <span className="text-[10px] text-slate-400 font-mono mt-1">Status Active</span>
+                                  </>
+                                );
+                              }
+                            })()}
                           </div>
 
                           {/* Decryption Controls & Delete option */}

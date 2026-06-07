@@ -25,9 +25,10 @@
         "category": { "type": "string", "description": "Category like Social, Work, Finance" },
         "notes": { "type": "string", "description": "Optional notes" },
         "createdAt": { "type": "string", "format": "date-time" },
-        "updatedAt": { "type": "string", "format": "date-time" }
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "expiresAt": { "type": "string", "format": "date-time", "description": "Dynamic rotational expiry date of password key" }
       },
-      "required": ["userId", "sourceName", "username", "encryptedPassword", "createdAt", "updatedAt"]
+      "required": ["userId", "sourceName", "username", "encryptedPassword", "createdAt", "updatedAt", "expiresAt"]
     }
   },
   "firestore": {
