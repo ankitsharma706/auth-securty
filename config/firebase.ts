@@ -1,13 +1,15 @@
-import firebase from 'firebase/compat/app';
-import 'firebase/compat/firestore';
-import 'firebase/compat/auth';
+import { initializeApp } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
+import { getAuth } from 'firebase-admin/auth';
 import firebaseConfig from '../firebase-applet-config.json';
 
-// Initialize Client SDK in compat mode (uses API Key, confirmed working)
-const app = firebase.apps.length === 0 ? firebase.initializeApp(firebaseConfig) : firebase.app();
+// Initialize firebase-admin SDK with specific project ID
+const app = initializeApp({
+  projectId: firebaseConfig.projectId,
+});
 
-// Export services in compat mode
-export const db = app.firestore();
-export const auth = app.auth();
+// Export services with the specific custom database ID
+export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+export const auth = getAuth(app);
 
 export default app;

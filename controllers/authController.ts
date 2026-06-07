@@ -35,10 +35,16 @@ export const register = async (req: Request, res: Response) => {
     };
 
     const userRef = await db.collection('users').add(newUser);
-    (req.session as any).userId = userRef.id;
-    (req.session as any).email = email;
-
-    res.redirect('/dashboard');
+    
+    req.session.regenerate((err) => {
+      if (err) {
+        console.error('Session regeneration error:', err);
+        return res.render('auth/register', { error: 'Registration failed during session setup.' });
+      }
+      (req.session as any).userId = userRef.id;
+      (req.session as any).email = email;
+      res.redirect('/dashboard');
+    });
   } catch (error) {
     console.error(error);
     res.render('auth/register', { error: 'Registration failed. Please try again.' });
@@ -68,15 +74,21 @@ export const login = async (req: Request, res: Response) => {
 
     // Check if 2FA is enabled
     if (userData.twoFactorEnabled) {
+      // 2FA is a partial login, we keep the session but mark it as pending
       (req.session as any).tempUserId = userDoc.id;
       (req.session as any).tempEmail = email;
       return res.redirect('/2fa/verify-login');
     }
 
-    (req.session as any).userId = userDoc.id;
-    (req.session as any).email = email;
-
-    res.redirect('/dashboard');
+    req.session.regenerate((err) => {
+      if (err) {
+        console.error('Session regeneration error:', err);
+        return res.render('auth/login', { error: 'Login failed during session setup.' });
+      }
+      (req.session as any).userId = userDoc.id;
+      (req.session as any).email = email;
+      res.redirect('/dashboard');
+    });
   } catch (error) {
     console.error(error);
     res.render('auth/login', { error: 'Login failed. Please try again.' });
@@ -180,14 +192,16 @@ export const verifyLogin2FA = async (req: Request, res: Response) => {
 
     if (verified) {
       console.log(`2FA Success for user: ${tempEmail}`);
-      (req.session as any).userId = tempUserId;
-      (req.session as any).email = tempEmail;
       
-      // Clean up temp session variables
-      delete (req.session as any).tempUserId;
-      delete (req.session as any).tempEmail;
-      
-      res.redirect('/dashboard');
+      req.session.regenerate((err) => {
+        if (err) {
+          console.error('Session regeneration error:', err);
+          return res.render('auth/2fa-verify', { error: 'Verification failed during session setup.' });
+        }
+        (req.session as any).userId = tempUserId;
+        (req.session as any).email = tempEmail;
+        res.redirect('/dashboard');
+      });
     } else {
       console.log(`2FA Invalid token for user: ${tempEmail}`);
       res.render('auth/2fa-verify', { error: 'Invalid 2FA token. Please try again.' });
