@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { db } from '../config/firebase.js';
+import { db } from '../src/firebase.js';
 import { encrypt, decrypt } from '../utils/encryption.js';
 
 export const listPasswords = async (req: any, res: Response) => {

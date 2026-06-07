@@ -2,14 +2,15 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import speakeasy from 'speakeasy';
 import QRCode from 'qrcode';
-import { db } from '../config/firebase.js';
+import { db } from '../src/firebase.js';
 
 export const registerPage = (req: Request, res: Response) => {
   res.render('auth/register', { error: null });
 };
 
 export const loginPage = (req: Request, res: Response) => {
-  res.render('auth/login', { error: null });
+  const success = req.query.success || (req.query.logout === '1' ? 'You have been successfully signed out.' : null);
+  res.render('auth/login', { error: null, success });
 };
 
 export const register = async (req: Request, res: Response) => {
@@ -43,7 +44,14 @@ export const register = async (req: Request, res: Response) => {
       }
       (req.session as any).userId = userRef.id;
       (req.session as any).email = email;
-      res.redirect('/dashboard');
+      
+      req.session.save((saveErr) => {
+        if (saveErr) {
+          console.error('Session save error:', saveErr);
+          return res.render('auth/register', { error: 'Registration failed during session setup.' });
+        }
+        res.redirect('/dashboard');
+      });
     });
   } catch (error) {
     console.error(error);
@@ -55,13 +63,13 @@ export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.render('auth/login', { error: 'Please provide all fields' });
+    return res.render('auth/login', { error: 'Please provide all fields', success: null });
   }
 
   try {
     const userQuery = await db.collection('users').where('email', '==', email).get();
     if (userQuery.empty) {
-      return res.render('auth/login', { error: 'Invalid credentials' });
+      return res.render('auth/login', { error: 'Invalid credentials', success: null });
     }
 
     const userDoc = userQuery.docs[0];
@@ -69,7 +77,7 @@ export const login = async (req: Request, res: Response) => {
     const isMatch = await bcrypt.compare(password, userData.passwordHash);
 
     if (!isMatch) {
-      return res.render('auth/login', { error: 'Invalid credentials' });
+      return res.render('auth/login', { error: 'Invalid credentials', success: null });
     }
 
     // Check if 2FA is enabled
@@ -83,15 +91,22 @@ export const login = async (req: Request, res: Response) => {
     req.session.regenerate((err) => {
       if (err) {
         console.error('Session regeneration error:', err);
-        return res.render('auth/login', { error: 'Login failed during session setup.' });
+        return res.render('auth/login', { error: 'Login failed during session setup.', success: null });
       }
       (req.session as any).userId = userDoc.id;
       (req.session as any).email = email;
-      res.redirect('/dashboard');
+      
+      req.session.save((saveErr) => {
+        if (saveErr) {
+          console.error('Session save error:', saveErr);
+          return res.render('auth/login', { error: 'Login failed during session setup.', success: null });
+        }
+        res.redirect('/dashboard');
+      });
     });
   } catch (error) {
     console.error(error);
-    res.render('auth/login', { error: 'Login failed. Please try again.' });
+    res.render('auth/login', { error: 'Login failed. Please try again.', success: null });
   }
 };
 
@@ -178,7 +193,7 @@ export const verifyLogin2FA = async (req: Request, res: Response) => {
     const userDoc = await db.collection('users').doc(tempUserId).get();
     if (!userDoc.exists) {
       console.log('Verification failed: User record not found');
-      return res.render('auth/login', { error: 'Session expired. Please login again.' });
+      return res.render('auth/login', { error: 'Session expired. Please login again.', success: null });
     }
 
     const userData = userDoc.data();
@@ -200,7 +215,14 @@ export const verifyLogin2FA = async (req: Request, res: Response) => {
         }
         (req.session as any).userId = tempUserId;
         (req.session as any).email = tempEmail;
-        res.redirect('/dashboard');
+        
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            console.error('Session save error:', saveErr);
+            return res.render('auth/2fa-verify', { error: 'Verification failed during session setup.' });
+          }
+          res.redirect('/dashboard');
+        });
       });
     } else {
       console.log(`2FA Invalid token for user: ${tempEmail}`);
@@ -229,6 +251,6 @@ export const disable2FA = async (req: any, res: Response) => {
 export const logout = (req: Request, res: Response) => {
   req.session.destroy((err) => {
     if (err) console.error(err);
-    res.redirect('/login');
+    res.redirect('/login?logout=1');
   });
 };

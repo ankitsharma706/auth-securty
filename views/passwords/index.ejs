@@ -1,73 +1,109 @@
 <%- include('../partials/header') %>
 
 <div class="max-w-6xl mx-auto">
-    <div class="flex justify-between items-center mb-8">
+    <!-- Header Block -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
-            <h1 class="text-3xl font-bold space-grotesk">Your Vault</h1>
-            <p class="text-slate-500">Securely managing all your credentials.</p>
+            <h1 class="text-3xl font-bold space-grotesk tracking-tight">Your Decrypted Vault</h1>
+            <p class="text-slate-500 mt-1">Stored securely in Google Cloud Firestore using military-grade AES-256 encryption.</p>
         </div>
-        <div class="flex items-center gap-4">
-            <form action="/passwords/search" method="GET" class="relative">
-                <input type="text" name="query" placeholder="Search entries..." class="pl-10 pr-4 py-2 rounded-xl bg-white/50 border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 w-64">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            </form>
-            <a href="/passwords/new" class="px-5 py-2.5 button-gradient text-white rounded-xl font-semibold shadow-md active:scale-95 text-sm">Add New</a>
+        <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            <div class="relative flex-1 md:flex-none">
+                <input type="text" id="vaultSearch" placeholder="Filter passwords instantaneously..." class="w-full md:w-64 pl-10 pr-4 py-2.5 rounded-xl bg-white/60 border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-all shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </div>
+            <a href="/passwords/new" class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-semibold shadow-md active:scale-95 text-sm transition-all flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Add New
+            </a>
         </div>
     </div>
 
-    <div class="glass rounded-3xl overflow-hidden">
-        <table class="w-full text-left border-collapse">
+    <!-- Category Selector Tabs -->
+    <div class="flex gap-2 overflow-x-auto pb-4 mb-6 scrollbar-hide">
+        <button class="category-tab px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-blue-600 text-white transition-all shadow-sm active:scale-95 border border-transparent" data-category="ALL">All Accounts</button>
+        <button class="category-tab px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-white/60 hover:bg-white text-slate-600 transition-all shadow-sm active:scale-95 border border-slate-100" data-category="Social">Social</button>
+        <button class="category-tab px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-white/60 hover:bg-white text-slate-600 transition-all shadow-sm active:scale-95 border border-slate-100" data-category="Work">Work</button>
+        <button class="category-tab px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-white/60 hover:bg-white text-slate-600 transition-all shadow-sm active:scale-95 border border-slate-100" data-category="Finance">Finance</button>
+        <button class="category-tab px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-white/60 hover:bg-white text-slate-600 transition-all shadow-sm active:scale-95 border border-slate-100" data-category="Personal">Personal</button>
+        <button class="category-tab px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-white/60 hover:bg-white text-slate-600 transition-all shadow-sm active:scale-95 border border-slate-100" data-category="Shopping">Shopping</button>
+        <button class="category-tab px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-white/60 hover:bg-white text-slate-600 transition-all shadow-sm active:scale-95 border border-slate-100" data-category="Other">Other</button>
+    </div>
+
+    <!-- Storage Table container -->
+    <div class="glass rounded-3xl overflow-hidden border border-white/40 premium-shadow">
+        <table class="w-full text-left border-collapse" id="passwordTable">
             <thead>
-                <tr class="border-b border-slate-100 bg-slate-50/50">
-                    <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Source</th>
-                    <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Username/Email</th>
-                    <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Password</th>
-                    <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest text-right">Actions</th>
+                <tr class="border-b border-slate-200/60 bg-slate-50/50">
+                    <th class="px-6 py-4.5 text-xs font-bold text-slate-400 uppercase tracking-widest">Source / App</th>
+                    <th class="px-6 py-4.5 text-xs font-bold text-slate-400 uppercase tracking-widest">Username / Identifier</th>
+                    <th class="px-6 py-4.5 text-xs font-bold text-slate-400 uppercase tracking-widest">Storage Status & Decryption</th>
+                    <th class="px-6 py-4.5 text-xs font-bold text-slate-400 uppercase tracking-widest text-right">Actions</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
                 <% if (passwords.length === 0) { %>
-                    <tr>
-                        <td colspan="4" class="px-6 py-20 text-center text-slate-400">No passwords found.</td>
+                    <tr class="empty-state-row">
+                        <td colspan="4" class="px-6 py-24 text-center">
+                            <div class="flex flex-col items-center justify-center max-w-sm mx-auto">
+                                <div class="w-16 h-16 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center mb-4 border border-blue-100">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                </div>
+                                <h3 class="text-base font-bold text-slate-700">Storage database is empty</h3>
+                                <p class="text-sm text-slate-400 mt-1 mb-6">No passwords found in your personal keyholder. Start by adding a credential record.</p>
+                                <a href="/passwords/new" class="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold premium-shadow hover:bg-blue-700 transition-all">Add Your First Credential</a>
+                            </div>
+                        </td>
                     </tr>
                 <% } else { %>
                     <% passwords.forEach(pw => { %>
-                        <tr class="hover:bg-blue-50/30 transition-colors group">
+                        <tr class="password-row hover:bg-blue-50/25 transition-colors group" data-category="<%= pw.category %>" data-source="<%= pw.sourceName.toLowerCase() %>" data-username="<%= pw.username.toLowerCase() %>">
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center font-bold text-xs"><%= pw.sourceName.charAt(0).toUpperCase() %></div>
+                                    <div class="w-10 h-10 bg-gradient-to-tr from-blue-50 to-indigo-50 border border-blue-100 text-blue-600 rounded-xl flex items-center justify-center font-bold text-sm select-none shadow-sm"><%= pw.sourceName.charAt(0).toUpperCase() %></div>
                                     <div>
-                                        <div class="font-bold text-slate-700"><%= pw.sourceName %></div>
-                                        <div class="text-[10px] bg-slate-100 text-slate-500 px-1.5 rounded uppercase font-bold inline-block mt-0.5"><%= pw.category %></div>
+                                        <div class="font-bold text-slate-700 text-sm"><%= pw.sourceName %></div>
+                                        <% 
+                                            let badgeStyle = "bg-slate-50 text-slate-600 border border-slate-200/60";
+                                            if (pw.category === 'Social') badgeStyle = "bg-blue-50 text-blue-600 border border-blue-100";
+                                            else if (pw.category === 'Work') badgeStyle = "bg-purple-50 text-purple-600 border border-purple-100";
+                                            else if (pw.category === 'Finance') badgeStyle = "bg-emerald-50 text-emerald-600 border border-emerald-100";
+                                            else if (pw.category === 'Personal') badgeStyle = "bg-amber-50 text-amber-600 border border-amber-100";
+                                            else if (pw.category === 'Shopping') badgeStyle = "bg-pink-50 text-pink-600 border border-pink-100";
+                                        %>
+                                        <div class="text-[10px] <%= badgeStyle %> px-2 py-0.5 rounded-lg uppercase tracking-wider font-extrabold inline-block mt-1"><%= pw.category %></div>
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 text-sm text-slate-600"><%= pw.username %></td>
+                            <td class="px-6 py-4 text-sm font-medium text-slate-600"><%= pw.username %></td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-2">
-                                    <span class="password-field font-mono text-sm tracking-tighter" data-password="<%= pw.decryptedPassword %>">••••••••</span>
-                                    <button class="p-1.5 hover:bg-white rounded-lg text-slate-400 hover:text-blue-600 transition-colors toggle-visibility" title="Show/Hide">
+                                    <span class="password-field px-2.5 py-1 min-w-[7rem] text-center rounded-lg bg-slate-100/80 font-mono text-sm tracking-widest text-slate-500 transition-all select-all bubble-text" data-password="<%= pw.decryptedPassword %>">••••••••</span>
+                                    <button class="p-1.5 hover:bg-white rounded-lg text-slate-400 hover:text-blue-500 transition-colors toggle-visibility" title="Toggle Plaintext">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                                     </button>
-                                    <button class="p-1.5 hover:bg-white rounded-lg text-slate-400 hover:text-blue-600 transition-colors copy-btn" data-copy="<%= pw.decryptedPassword %>" title="Copy">
+                                    <button class="p-1.5 hover:bg-white rounded-lg text-slate-400 hover:text-emerald-500 transition-colors copy-btn" data-copy="<%= pw.decryptedPassword %>" title="Copy Text to Clipboard">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                                     </button>
                                 </div>
                             </td>
                             <td class="px-6 py-4 text-right">
-                                <div class="flex justify-end gap-2">
-                                    <a href="/passwords/edit/<%= pw.id %>" class="p-2 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                <div class="flex justify-end gap-1.5">
+                                    <a href="/passwords/edit/<%= pw.id %>" class="p-2 hover:bg-blue-100 text-blue-600 rounded-xl transition-colors" title="Modify Record">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                     </a>
-                                    <form action="/passwords/delete/<%= pw.id %>" method="POST" onsubmit="return confirm('Are you sure you want to delete this password?')">
-                                        <button type="submit" class="p-2 hover:bg-red-100 text-red-600 rounded-lg transition-colors">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                                    <form action="/passwords/delete/<%= pw.id %>" method="POST" onsubmit="return confirm('Secure Lock: Delete this password? This action cannot be undone.')" class="inline">
+                                        <button type="submit" class="p-2 hover:bg-red-100 text-red-600 rounded-xl transition-colors" title="Purge Record">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                                         </button>
                                     </form>
                                 </div>
                             </td>
                         </tr>
                     <% }) %>
+                    <tr id="noResultsRow" class="hidden">
+                        <td colspan="4" class="px-6 py-16 text-center text-slate-400 font-medium">No creds match your filtering phrase.</td>
+                    </tr>
                 <% } %>
             </tbody>
         </table>
@@ -75,3 +111,4 @@
 </div>
 
 <%- include('../partials/footer') %>
+

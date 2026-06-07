@@ -1,5 +1,6 @@
 import express from "express";
 import path from "path";
+import fs from "fs";
 import session from "express-session";
 import cookieParser from "cookie-parser";
 import { createServer as createViteServer } from "vite";
@@ -10,7 +11,7 @@ dotenv.config();
 
 import authRoutes from "./routes/authRoutes.js";
 import passwordRoutes from "./routes/passwordRoutes.js";
-import { db } from "./config/firebase.js";
+import { db } from "./src/firebase.js";
 
 async function seedDemoUser() {
   try {
@@ -41,6 +42,9 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
+  // Trust reverse proxy for secure cookies over HTTPS behind proxy layers
+  app.set("trust proxy", 1);
+
   // View engine setup
   app.set("view engine", "ejs");
   app.set("views", path.join(process.cwd(), "views"));
@@ -49,6 +53,7 @@ async function startServer() {
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json());
   app.use(cookieParser());
+  
   app.use(
     session({
       name: "sec_vault_session",
@@ -57,12 +62,24 @@ async function startServer() {
       saveUninitialized: false,
       cookie: { 
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production", 
-        sameSite: "lax",
+        secure: true, 
+        sameSite: "none",
         maxAge: 2 * 60 * 60 * 1000 // 2 hours
       },
     })
   );
+
+  // Expose session user details to all views automatically
+  app.use((req: any, res: any, next) => {
+    if (req.session && req.session.userId) {
+      res.locals.user = {
+        email: req.session.email
+      };
+    } else {
+      res.locals.user = null;
+    }
+    next();
+  });
 
   // Static files
   app.use(express.static(path.join(process.cwd(), "public")));
@@ -113,13 +130,11 @@ async function startServer() {
     }
   });
 
-  app.get("/", (req, res) => {
-    res.redirect("/login");
-  });
+  let vite: any = null;
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
+    vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "custom", // Changed from "spa" to "custom" for EJS
     });
@@ -128,6 +143,21 @@ async function startServer() {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
   }
+
+  // Serve React SPA on root or /app (or unmatched routes)
+  app.get(["/", "/app", "/app/*"], async (req, res, next) => {
+    try {
+      if (process.env.NODE_ENV !== "production" && vite) {
+        let template = fs.readFileSync(path.resolve(process.cwd(), "index.html"), "utf-8");
+        template = await vite.transformIndexHtml(req.originalUrl, template);
+        return res.status(200).set({ "Content-Type": "text/html" }).end(template);
+      } else {
+        return res.sendFile(path.join(process.cwd(), "dist", "index.html"));
+      }
+    } catch (e) {
+      next(e);
+    }
+  });
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`SecureVault Pro running on http://localhost:${PORT}`);
